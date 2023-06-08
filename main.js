@@ -2,9 +2,10 @@
  * Statistics library for JavaScript. Includes most methods.
  * Correctness is not guaranteed.
  * 
- * TODO: Ctrl-F for 'TODO' to find things I need to do.
+ * TODO: add more customizability to scatterplots, line graphs, bar graphs, histograms, and pie charts.
+ * TODO: add fix for scatterplot lines with slope larger than 1. Restrict both the x- and y-axis to [0, MAX_VAL]
  * 
- * List of methods:
+ * 
  * Constants
  *     [DONE] z-score for 95% confidence
  *     [DONE] z-score for 99% confidence
@@ -27,17 +28,19 @@
  * 
  * Correlation
  *     [DONE] PMCC (product-moment correlation coefficient)
- *     SRCC (spearman-rank correlation coefficient)
+ *     [DONE] SRCC (spearman-rank correlation coefficient)
  *     Chi-square test for goodness of fit
  *     Chi-square test for association
  * 
  * Graphical
- *     Scatterplots
- *     Line graph
+ *     [DONE] Scatterplots
+ *     [DONE] Line graph
  *     Pie charts
  *     Bar graphs
  *     Histograms
  * 
+ * Other
+ *     Styling options for graphs
  * 
  * @author Gene Yang
  * @version June 6th, 2023
@@ -234,19 +237,41 @@ var STATS = (function(){
      * @param data - An array of 2D elements in the form [x, y], e,g, [[x1, y1], [x2, y2], [x3, y3]...]
      * @return - The correlation coefficient, a number in the range [-1, 1].
      */
-    function srcc(data){}
+    function srcc(data){
+        // 1. Store data as an array of [number, original_position], [number, original_position], etc.
+        //      original_position is the original position in which the number has appeared.
+        var xData = [],
+            yData = [];
+        for(var i = 0; i < data.length; i++){
+            xData.push([data[i][0], i]);
+            yData.push([data[i][1], i]);
+        }
+
+        // 2. Sort the elements.
+        xData.sort(function(arr1, arr2){ return arr1[0] - arr2[0]; });
+        yData.sort(function(arr1, arr2){ return arr1[0] - arr2[0]; });
+
+        // 3. Now assign ranks to each of the numbers given, found from the IDs.
+        var xRank = new Array(data.length),
+            yRank = new Array(data.length);
+        for(var i = 0; i < data.length; i++){
+            xRank[xData[i][1]] = i;
+            yRank[yData[i][1]] = i;
+        }
+
+        // 4. Find the sum of d_i for the data set.
+        var sum_di = 0;
+        for(var i = 0; i < xRank.length; i++){
+            sum_di += Math.abs(xRank[i] - yRank[i]);
+        }
+
+        // 5. Apply the equation
+        return 1 - (6 * sum_di)/(data.length * (data.length*data.length - 1));
+    }
 
     function chiSquareGoodnessOfFit(){}
 
     function chiSquareAssociation(){}
-
-    /* Scatterplot outline
-             *      var plot = STATS.newPlot(_title_, _x_, _y_);
-             *      plot.setX(_title_, _spacing_, _numTicks_);
-             *      plot.setY(_title_, _spacing_, _numTicks_);
-             *      plot.addData(_[data]_);
-             *      plot.addLine(_[calculated line of best fit OR custom line]_);
-    */
 
     /*
     Also pie graphs, bar graphs, histograms
@@ -256,75 +281,79 @@ var STATS = (function(){
     Maybe a little note about z-scores and t-scores?
     */
 
-    // TODO: add line width and color, font customization through a method called 'setStyle.'
+    /**
+     * Creates a scatterplot with options to add a line of best fit.
+     */ 
     var scatterplot = (function(){
+        /**
+         * Constructor for the scatterplot
+         * @param title - The title of the scatterplot
+         * @param x - The x-coordinate of the scatterplot, counting from the origin.
+         * @param y - The y-coordinate of the scatterplot, counting from the origin.
+         */ 
         scatterplot = function(title, x, y){
             this.title = title;
             this.x = x;
             this.y = y;
 
             // Defaults
+            this.xTitle = "";
             this.xStartNum = 0;
-            this.yStartNum = 0;
             this.xSpacing = 10;
-            this.ySpacing = 10;
             this.numXTicks = 3;
+
+            this.yTitle = "";
+            this.yStartNum = 0;
+            this.ySpacing = 10;
             this.numYTicks = 3;
+
             this.data = [];
         };
 
         scatterplot.prototype = {
+            /**
+             * Sets the relevant details for the x-axis.
+             * @param xTitle - The title for the x-axis
+             * @param xStartNum - The starting number for the x-axis
+             * @param xSpacing - The spacing, in pixels, between each tick mark on the x-axis
+             * @param numXTicks - The number of ticks on the x-axis
+             */ 
             setX: function(xTitle, xStartNum, xSpacing, numXTicks){
                 this.xTitle = xTitle;
                 this.xStartNum = xStartNum;
                 this.xSpacing = xSpacing;
                 this.numXTicks = numXTicks;
             },
+
+            /**
+             * Sets the relevant details for the y-axis.
+             * @param yTitle - The title for the y-axis
+             * @param yStartNum - The starting number for the y-axis
+             * @param ySpacing - The spacing, in pixels, between each tick mark on the y-axis
+             * @param numYTicks - The number of ticks on the y-axis
+             */ 
             setY: function(yTitle, yStartNum, ySpacing, numYTicks){
                 this.yTitle = yTitle;
                 this.yStartNum = yStartNum;
                 this.ySpacing = ySpacing;
                 this.numYTicks = numYTicks;
             },
+
+            /**
+             * Sets the coordinate data for the scatterplot.
+             * @param data - The data for the line graph in the form of the points' coordinates.
+             *               Should be a nested array in the form [[x1, y1], [x2, y2], [x3, y3]...]
+             */
             addData: function(data){
                 this.data = data;
             },
+
+            /**
+             * Draws the scatterplot.
+             * @param ctx - The canvas rendering context
+             */ 
             draw: function(ctx){
-                // Scatterplot title
-                ctx.font = "20px serif";
-                ctx.fillStyle = "black";
-                ctx.textAlign = "center";
-                ctx.fillText(this.title, this.x + this.xSpacing*this.numXTicks/2, this.y - this.ySpacing*(this.numYTicks + 1));
-
-                // x-axis title
-                ctx.font = "17px serif";
-                ctx.fillText(this.xTitle, this.x+ this.xSpacing*this.numXTicks/2, this.y + this.ySpacing);
-
-                // y-axis title
-                ctx.save();
-                ctx.translate(this.x - this.xSpacing, this.y - this.ySpacing*this.numYTicks/2);
-                ctx.rotate(3 * Math.PI/2);
-                ctx.fillText(this.yTitle, 0, 0);
-                ctx.translate(-(this.x - this.xSpacing), -(this.y - this.ySpacing*this.numYTicks/2));
-                ctx.restore();
-
-                // Axes
-                drawLine(ctx, this.x, this.y, this.x, this.y - this.ySpacing*this.numYTicks); // y-axis
-                drawLine(ctx, this.x, this.y, this.x + this.xSpacing*this.numXTicks, this.y); // x-axis
-
-                ctx.font = "12px serif";
-                
-                // y-axis bars
-                for(var i = 0; i <= this.numXTicks; i++){
-                    ctx.fillText(i, this.x - 20, this.y - i*this.ySpacing + 3);
-                    if(i > 0) drawLine(ctx, this.x - 3, this.y - i*this.ySpacing, this.x + 3, this.y - i*this.ySpacing);
-                }
-
-                // x-axis bars
-                for(var i = 0; i <= this.numXTicks; i++){
-                    ctx.fillText(i, this.x + i*this.xSpacing - 3, this.y + 20);
-                    if(i > 0) drawLine(ctx, this.x + i*this.xSpacing, this.y - 3, this.x + i*this.xSpacing, this.y + 3);
-                }
+                graphSetup(ctx, this);
 
                 // dots
                 for(var i = 0; i < this.data.length; i++){
@@ -335,6 +364,14 @@ var STATS = (function(){
                     ctx.stroke();
                 }
             },
+
+            /**
+             * Calculates, draws, and returns the line of best fit.
+             * Two options: simple linear regression and model 2 linear regression.
+             * @param type - The type of linear regression to use, either "simple" or "model2." Default is "model2."
+             * @param ctx - The canvas rendering context
+             * @return - An array in the form [a, b], where the regression line is y = ax + b.
+             */ 
             lineOfBestFit: function(type, ctx){
                 // Simple linear regression
                 if(type == "simple"){
@@ -416,26 +453,119 @@ var STATS = (function(){
                     // Returns information needed for equation of the line as [slope, y-intercept]
                     return [a, b];
                 }
+            },
+
+            /**
+             * Draws a custom line specified by the user onto the scatterplot.
+             * @param a - The slope of the line, which is y = ax + b
+             * @param b - The y-intercept of the line, which is y = ax + b.
+             * @param ctx - The canvas rendering context
+             */
+            customLine: function(a, b, ctx){
+                var x1 = this.xStartNum,
+                    x2 = this.xStartNum + this.numXTicks;
+                drawLine(ctx, this.x + this.xSpacing*x1, this.y - this.ySpacing*(a*x1 + b),
+                              this.x + this.xSpacing*x2, this.y - this.ySpacing*(a*x2 + b));
             }
         };
 
         return scatterplot;
     })();
 
+    /**
+     * Creates a line graph.
+     */ 
     var lineGraph = (function(){
+        /**
+         * Constructor for the line graph
+         * @param title - The title of the line graph
+         * @param x - The x-coordinate of the line graph, or the origin on the axes.
+         * @param y - The y-coordinate of the line graph, or the origin on the axes.
+         */ 
         lineGraph = function(title, x, y){
             this.title = title;
             this.x = x;
             this.y = y;
 
+            // Defaults
+            this.xTitle = "";
+            this.xStartNum = 0;
+            this.xSpacing = 10;
+            this.numXTicks = 3;
+
+            this.yTitle = "";
+            this.yStartNum = 0;
+            this.ySpacing = 10;
+            this.numYTicks = 3;
+
             this.data = [];
         };
+
         lineGraph.prototype = {
+            /**
+             * Sets the relevant details for the x-axis.
+             * @param xTitle - The title for the x-axis
+             * @param xStartNum - The starting number for the x-axis
+             * @param xSpacing - The spacing, in pixels, between each tick mark on the x-axis
+             * @param numXTicks - The number of ticks on the x-axis
+             */ 
+            setX: function(xTitle, xStartNum, xSpacing, numXTicks){
+                this.xTitle = xTitle;
+                this.xStartNum = xStartNum;
+                this.xSpacing = xSpacing;
+                this.numXTicks = numXTicks;
+            },
+
+            /**
+             * Sets the relevant details for the y-axis.
+             * @param yTitle - The title for the y-axis
+             * @param yStartNum - The starting number for the y-axis
+             * @param ySpacing - The spacing, in pixels, between each tick mark on the y-axis
+             * @param numYTicks - The number of ticks on the y-axis
+             */ 
+            setY: function(yTitle, yStartNum, ySpacing, numYTicks){
+                this.yTitle = yTitle;
+                this.yStartNum = yStartNum;
+                this.ySpacing = ySpacing;
+                this.numYTicks = numYTicks;
+            },
+
+            /**
+             * Sets the coordinate data for the line graph.
+             * @param data - The data for the line graph in the form of coordinates.
+             *               Should be a nested array in the form [[x1, y1], [x2, y2], [x3, y3]...]
+             *               Order doesn't matter.
+             */ 
             addData: function(data){
                 this.data = data;
+
+                // Sort data depending on x (the first variable).
+                this.data.sort(function(arr1, arr2){
+                    if(arr1[0] == arr2[0]) return arr2[1] - arr1[1];
+                    else return arr2[0] - arr1[0];
+                });
             },
-            draw: function(data){}
+
+            /**
+             * Draws the line graph.
+             * @param ctx - The canvas rendering context
+             */ 
+            draw: function(ctx){
+                graphSetup(ctx, this);
+
+                // Data
+                var prevX = this.x + this.data[0][0] * this.xSpacing,
+                    prevY = this.y - this.data[0][1] * this.ySpacing;
+
+                for(var i = 1; i < this.data.length; i++){
+                    drawLine(ctx, prevX, prevY, this.x + this.data[i][0] * this.xSpacing, this.y - this.data[i][1] * this.ySpacing);
+                    prevX = this.x + this.data[i][0] * this.xSpacing;
+                    prevY = this.y - this.data[i][1] * this.ySpacing;
+                }
+            }
         };
+
+        return lineGraph;
     })();
 
     var pieGraph = (function(){
@@ -449,16 +579,22 @@ var STATS = (function(){
 
             }
         };
+
+        return pieGraph;
     })();
 
     var barGraph = (function(){
         barGraph = function(){};
         barGraph.prototype = {};
+
+        return barGraph;
     })();
 
     var histogram = (function(){
         histogram = function(){};
         histogram.prototype = {};
+
+        return histogram;
     })();
 
 
@@ -468,6 +604,44 @@ var STATS = (function(){
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(toX, toY);
         ctx.stroke();
+    }
+
+    function graphSetup(ctx, obj){
+        // Graph title
+        ctx.font = "20px serif";
+        ctx.fillStyle = "black";
+        ctx.textAlign = "center";
+        ctx.fillText(obj.title, obj.x + obj.xSpacing*obj.numXTicks/2, obj.y - obj.ySpacing*(obj.numYTicks + 1));
+
+        // x-axis title
+        ctx.font = "17px serif";
+        ctx.fillText(obj.xTitle, obj.x + obj.xSpacing*obj.numXTicks/2, obj.y + 40);
+
+        // y-axis title
+        ctx.save();
+        ctx.translate(obj.x - 40, obj.y - obj.ySpacing*obj.numYTicks/2);
+        ctx.rotate(3 * Math.PI/2);
+        ctx.fillText(obj.yTitle, 0, 0);
+        ctx.translate(-(obj.x - 40), -(obj.y - obj.ySpacing*obj.numYTicks/2));
+        ctx.restore();
+
+        // Axes
+        drawLine(ctx, obj.x, obj.y, obj.x, obj.y - obj.ySpacing*obj.numYTicks); // y-axis
+        drawLine(ctx, obj.x, obj.y, obj.x + obj.xSpacing*obj.numXTicks, obj.y); // x-axis
+
+        ctx.font = "12px serif";
+                
+        // y-axis bars
+        for(var i = 0; i <= obj.numXTicks; i++){
+            ctx.fillText(i, obj.x - 20, obj.y - i*obj.ySpacing + 3);
+            if(i > 0) drawLine(ctx, obj.x - 3, obj.y - i*obj.ySpacing, obj.x + 3, obj.y - i*obj.ySpacing);
+        }
+
+        // x-axis bars
+        for(var i = 0; i <= obj.numXTicks; i++){
+            ctx.fillText(i, obj.x + i*obj.xSpacing - 3, obj.y + 20);
+            if(i > 0) drawLine(ctx, obj.x + i*obj.xSpacing, obj.y - 3, obj.x + i*obj.xSpacing, obj.y + 3);
+        }
     }
     
     return {
