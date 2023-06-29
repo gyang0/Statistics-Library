@@ -299,12 +299,14 @@ var STATS = (function(){
             // Defaults
             this.xTitle = "";
             this.xStartNum = 0;
-            this.xSpacing = 10;
+            this.xValueSpacing = 1;
+            this.xTickSpacing = 10;
             this.numXTicks = 3;
 
             this.yTitle = "";
             this.yStartNum = 0;
-            this.ySpacing = 10;
+            this.yValueSpacing = 1;
+            this.yTickSpacing = 10;
             this.numYTicks = 3;
 
             this.data = [];
@@ -318,10 +320,11 @@ var STATS = (function(){
              * @param xSpacing - The spacing, in pixels, between each tick mark on the x-axis
              * @param numXTicks - The number of ticks on the x-axis
              */ 
-            setX: function(xTitle, xStartNum, xSpacing, numXTicks){
+            setX: function(xTitle, xStartNum, xValueSpacing, xTickSpacing, numXTicks){
                 this.xTitle = xTitle;
                 this.xStartNum = xStartNum;
-                this.xSpacing = xSpacing;
+                this.xValueSpacing = xValueSpacing;
+                this.xTickSpacing = xTickSpacing;
                 this.numXTicks = numXTicks;
             },
 
@@ -332,10 +335,11 @@ var STATS = (function(){
              * @param ySpacing - The spacing, in pixels, between each tick mark on the y-axis
              * @param numYTicks - The number of ticks on the y-axis
              */ 
-            setY: function(yTitle, yStartNum, ySpacing, numYTicks){
+            setY: function(yTitle, yStartNum, yValueSpacing, yTickSpacing, numYTicks){
                 this.yTitle = yTitle;
                 this.yStartNum = yStartNum;
-                this.ySpacing = ySpacing;
+                this.yValueSpacing = yValueSpacing;
+                this.yTickSpacing = yTickSpacing;
                 this.numYTicks = numYTicks;
             },
 
@@ -359,7 +363,8 @@ var STATS = (function(){
                 for(var i = 0; i < this.data.length; i++){
                     ctx.fillStyle = "black";
                     ctx.beginPath();
-                    ctx.ellipse(this.x + this.data[i][0] * this.xSpacing, this.y - this.data[i][1] * this.ySpacing, 2, 2, 0, 0, 2 * Math.PI);
+                    ctx.ellipse(this.x + (this.data[i][0] - this.xStartNum) * this.xTickSpacing/this.xValueSpacing,
+                                this.y - (this.data[i][1] - this.yStartNum) * this.yTickSpacing/this.yValueSpacing, 2, 2, 0, 0, 2 * Math.PI);
                     ctx.fill();
                     ctx.stroke();
                 }
@@ -406,8 +411,10 @@ var STATS = (function(){
                     ctx.fillStyle = "black";
                     var x1 = this.xStartNum,
                         x2 = this.xStartNum + this.numXTicks;
-                    drawLine(ctx, this.x + this.xSpacing*x1, this.y - this.ySpacing*(a*x1 + b),
-                                  this.x + this.xSpacing*x2, this.y - this.ySpacing*(a*x2 + b));
+                    drawLine(ctx, this.x + (x1 - this.xStartNum) * this.xTickSpacing/this.xValueSpacing,
+                                  this.y - this.yTickSpacing/this.yValueSpacing * (a*x1 + b - this.yStartNum),
+                                  this.x + (x2 - this.xStartNum) * this.xTickSpacing/this.xValueSpacing,
+                                  this.y - this.yTickSpacing/this.yValueSpacing * (a*x2 + b - this.yStartNum));
 
 
                     // Returns information needed for equation of the line as [slope, y-intercept]
@@ -446,8 +453,10 @@ var STATS = (function(){
                     ctx.fillStyle = "black";
                     var x1 = this.xStartNum,
                         x2 = this.xStartNum + this.numXTicks;
-                    drawLine(ctx, this.x + this.xSpacing*x1, this.y - this.ySpacing*(a*x1 + b),
-                                  this.x + this.xSpacing*x2, this.y - this.ySpacing*(a*x2 + b));
+                    drawLine(ctx, this.x + this.xTickSpacing/this.xValueSpacing * (x1 - this.xStartNum),
+                                  this.y - this.yTickSpacing/this.yValueSpacing * (a*x1 + b - this.yStartNum),
+                                  this.x + this.xTickSpacing/this.xValueSpacing * (x2 - this.xStartNum),
+                                  this.y - this.yTickSpacing/this.yValueSpacing * (a*x2 + b - this.yStartNum));
 
 
                     // Returns information needed for equation of the line as [slope, y-intercept]
@@ -464,8 +473,10 @@ var STATS = (function(){
             customLine: function(a, b, ctx){
                 var x1 = this.xStartNum,
                     x2 = this.xStartNum + this.numXTicks;
-                drawLine(ctx, this.x + this.xSpacing*x1, this.y - this.ySpacing*(a*x1 + b),
-                              this.x + this.xSpacing*x2, this.y - this.ySpacing*(a*x2 + b));
+                drawLine(ctx, this.x + this.xTickSpacing/this.xValueSpacing * (x1 - this.xStartNum),
+                              this.y - this.yTickSpacing/this.yValueSpacing * (a*x1 + b - this.yStartNum),
+                              this.x + this.xTickSpacing/this.xValueSpacing * (x2 - this.xStartNum),
+                              this.y - this.yTickSpacing/this.yValueSpacing * (a*x2 + b - this.yStartNum));
             }
         };
 
@@ -490,12 +501,14 @@ var STATS = (function(){
             // Defaults
             this.xTitle = "";
             this.xStartNum = 0;
-            this.xSpacing = 10;
+            this.xValueSpacing = 1;
+            this.xTickSpacing = 10;
             this.numXTicks = 3;
 
             this.yTitle = "";
             this.yStartNum = 0;
-            this.ySpacing = 10;
+            this.yValueSpacing = 1;
+            this.yTickSpacing = 10;
             this.numYTicks = 3;
 
             this.data = [];
@@ -509,10 +522,11 @@ var STATS = (function(){
              * @param xSpacing - The spacing, in pixels, between each tick mark on the x-axis
              * @param numXTicks - The number of ticks on the x-axis
              */ 
-            setX: function(xTitle, xStartNum, xSpacing, numXTicks){
+            setX: function(xTitle, xStartNum, xValueSpacing, xTickSpacing, numXTicks){
                 this.xTitle = xTitle;
                 this.xStartNum = xStartNum;
-                this.xSpacing = xSpacing;
+                this.xValueSpacing = xValueSpacing;
+                this.xTickSpacing = xTickSpacing;
                 this.numXTicks = numXTicks;
             },
 
@@ -523,10 +537,11 @@ var STATS = (function(){
              * @param ySpacing - The spacing, in pixels, between each tick mark on the y-axis
              * @param numYTicks - The number of ticks on the y-axis
              */ 
-            setY: function(yTitle, yStartNum, ySpacing, numYTicks){
+            setY: function(yTitle, yStartNum, yValueSpacing, yTickSpacing, numYTicks){
                 this.yTitle = yTitle;
                 this.yStartNum = yStartNum;
-                this.ySpacing = ySpacing;
+                this.yValueSpacing = yValueSpacing;
+                this.yTickSpacing = yTickSpacing;
                 this.numYTicks = numYTicks;
             },
 
@@ -549,18 +564,20 @@ var STATS = (function(){
             /**
              * Draws the line graph.
              * @param ctx - The canvas rendering context
-             */ 
+             */
             draw: function(ctx){
                 graphSetup(ctx, this);
 
                 // Data
-                var prevX = this.x + this.data[0][0] * this.xSpacing,
-                    prevY = this.y - this.data[0][1] * this.ySpacing;
+                var prevX = this.x + (this.data[0][0] - this.xStartNum) * this.xTickSpacing/this.xValueSpacing,
+                    prevY = this.y - (this.data[0][1] - this.yStartNum) * this.yTickSpacing/this.yValueSpacing;
 
                 for(var i = 1; i < this.data.length; i++){
-                    drawLine(ctx, prevX, prevY, this.x + this.data[i][0] * this.xSpacing, this.y - this.data[i][1] * this.ySpacing);
-                    prevX = this.x + this.data[i][0] * this.xSpacing;
-                    prevY = this.y - this.data[i][1] * this.ySpacing;
+                    drawLine(ctx, prevX, prevY, this.x + (this.data[i][0] - this.xStartNum) * this.xTickSpacing/this.xValueSpacing,
+                                                this.y - (this.data[i][1] - this.yStartNum) * this.yTickSpacing/this.yValueSpacing);
+
+                    prevX = this.x + (this.data[i][0] - this.xStartNum) * this.xTickSpacing/this.xValueSpacing;
+                    prevY = this.y - (this.data[i][1] - this.yStartNum) * this.yTickSpacing/this.yValueSpacing;
                 }
             }
         };
@@ -611,36 +628,36 @@ var STATS = (function(){
         ctx.font = "20px serif";
         ctx.fillStyle = "black";
         ctx.textAlign = "center";
-        ctx.fillText(obj.title, obj.x + obj.xSpacing*obj.numXTicks/2, obj.y - obj.ySpacing*(obj.numYTicks + 1));
+        ctx.fillText(obj.title, obj.x + obj.xTickSpacing*obj.numXTicks/2, obj.y - obj.yTickSpacing*(obj.numYTicks + 1));
 
         // x-axis title
         ctx.font = "17px serif";
-        ctx.fillText(obj.xTitle, obj.x + obj.xSpacing*obj.numXTicks/2, obj.y + 40);
+        ctx.fillText(obj.xTitle, obj.x + obj.xTickSpacing*obj.numXTicks/2, obj.y + 40);
 
         // y-axis title
         ctx.save();
-        ctx.translate(obj.x - 40, obj.y - obj.ySpacing*obj.numYTicks/2);
+        ctx.translate(obj.x - 40, obj.y - obj.yTickSpacing*obj.numYTicks/2);
         ctx.rotate(3 * Math.PI/2);
         ctx.fillText(obj.yTitle, 0, 0);
-        ctx.translate(-(obj.x - 40), -(obj.y - obj.ySpacing*obj.numYTicks/2));
+        ctx.translate(-(obj.x - 40), -(obj.y - obj.yTickSpacing*obj.numYTicks/2));
         ctx.restore();
 
         // Axes
-        drawLine(ctx, obj.x, obj.y, obj.x, obj.y - obj.ySpacing*obj.numYTicks); // y-axis
-        drawLine(ctx, obj.x, obj.y, obj.x + obj.xSpacing*obj.numXTicks, obj.y); // x-axis
+        drawLine(ctx, obj.x, obj.y, obj.x, obj.y - obj.yTickSpacing*obj.numYTicks); // y-axis
+        drawLine(ctx, obj.x, obj.y, obj.x + obj.xTickSpacing*obj.numXTicks, obj.y); // x-axis
 
         ctx.font = "12px serif";
-                
+        
         // y-axis bars
         for(var i = 0; i <= obj.numXTicks; i++){
-            ctx.fillText(i, obj.x - 20, obj.y - i*obj.ySpacing + 3);
-            if(i > 0) drawLine(ctx, obj.x - 3, obj.y - i*obj.ySpacing, obj.x + 3, obj.y - i*obj.ySpacing);
+            ctx.fillText(obj.yStartNum + i*obj.yValueSpacing, obj.x - 20, obj.y - i*obj.yTickSpacing + 3);
+            if(i > 0) drawLine(ctx, obj.x - 3, obj.y - i*obj.yTickSpacing, obj.x + 3, obj.y - i*obj.yTickSpacing);
         }
 
         // x-axis bars
         for(var i = 0; i <= obj.numXTicks; i++){
-            ctx.fillText(i, obj.x + i*obj.xSpacing - 3, obj.y + 20);
-            if(i > 0) drawLine(ctx, obj.x + i*obj.xSpacing, obj.y - 3, obj.x + i*obj.xSpacing, obj.y + 3);
+            ctx.fillText(obj.xStartNum + i*obj.xValueSpacing, obj.x + i*obj.xTickSpacing - 3, obj.y + 20);
+            if(i > 0) drawLine(ctx, obj.x + i*obj.xTickSpacing, obj.y - 3, obj.x + i*obj.xTickSpacing, obj.y + 3);
         }
     }
     
