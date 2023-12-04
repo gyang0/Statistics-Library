@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Statistics Library Examples</title>
+    </head>
+
+    <style>
+        #canvas {
+            border: 2px solid black;
+        }
+    </style>
+
+    <canvas id="canvas" width="1000px" height="600px"></canvas>
+    
+    <body></body>
+
+    <script src="main.js"></script>
+    <script>
+        function draw() {
+            /*
+
+            TODO: make line of best fit work with differently spaced graphs
+                Think of the graph as a section of the entire cartesian plane, and the line passes through it. Display that segment.
+            TODO: make points that aren't within the bounds of the graph not show
+
+            */
+            const ctx = document.getElementById("canvas").getContext("2d");
+            ctx.font = "48px serif";
+
+            var plot = new STATS.scatterplot("My scatterplot", 375, 270);
+            plot.setX("x variable", /*from*/ 0, /*value spacing*/ 1, /*tick spacing*/ 50, /*numTicks*/ 3);
+            plot.setY("y variable", /*from*/ 0, /*value spacing*/ 1, /*tick spacing*/ 50, /*numTicks*/ 3);
+            plot.addData([[1, 3], [2, 2], [3, 0], [0, 2], [2, 2], [2, 2], [1, 2], [1.5, 2.6], [2.5, 1.5], [2.8, 0.3], [2.1, 0.4]]);
+            plot.lineOfBestFit("model2", ctx);
+            plot.draw(ctx);
+
+            var graph = new STATS.lineGraph("My linegraph", 75, 250);
+            graph.setX("x variable", 0, 2, 30, 5);
+            graph.setY("y variable", 0, 2, 30, 5);
+            //graph.addData([[5, 1], [6, 2], [7, 8], [8, 9], [1, 0], [2, 1], [3, 10], [4, 6], [9, 10], [10, 8]]);
+            graph.addData([[0, 0], [1, 1], [2, 3], [4, 3], [5, 2], [6, 7], [8, 10], [9, 9], [11, 10]]);
+            graph.draw(ctx);
+
+            var pieGraph = new STATS.pieGraph("My pie graph", 100, 400, 80);
+            pieGraph.addData([["Cake", 0.33], ["Pie", 0.33], ["Ice cream", 0.13], ["Chocolate", 0.15], ["Cinnamon", 0.06]]);
+            pieGraph.draw(ctx);
+
+            var barGraph = new STATS.barGraph("My Bar Graph", 550, 550);
+            barGraph.addData([["Spring", 25], ["Summer", 50], ["Fall", 25], ["Winter", 20]]);
+            barGraph.draw(ctx);
+        }
+
+        draw();
+    </script>
+</html>
